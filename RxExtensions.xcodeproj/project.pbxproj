@@ -14,23 +14,7 @@
 		EB586AC01D41D81B00F5182B /* Delay.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB586ABF1D41D81B00F5182B /* Delay.swift */; };
 		EB586AC21D41D85200F5182B /* Producer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB586AC11D41D85200F5182B /* Producer.swift */; };
 		EB586AC41D41DAD200F5182B /* Throttle2.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB586AC31D41DAD200F5182B /* Throttle2.swift */; };
-		EB586ADE1D41E3AC00F5182B /* RxCocoa.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = EB586ABA1D41D70400F5182B /* RxCocoa.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		EB586ADF1D41E3AC00F5182B /* RxSwift.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = EB586AB61D41D6E000F5182B /* RxSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		EB586ADC1D41E3A400F5182B /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				EB586ADE1D41E3AC00F5182B /* RxCocoa.framework in CopyFiles */,
-				EB586ADF1D41E3AC00F5182B /* RxSwift.framework in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		EB586AAB1D41CBC700F5182B /* RxExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -110,7 +94,6 @@
 				EB586AA71D41CBC700F5182B /* Frameworks */,
 				EB586AA81D41CBC700F5182B /* Headers */,
 				EB586AA91D41CBC700F5182B /* Resources */,
-				EB586ADC1D41E3A400F5182B /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -283,6 +266,7 @@
 				);
 				INFOPLIST_FILE = RxExtensions/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tarunon.RxExtensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -305,6 +289,7 @@
 				);
 				INFOPLIST_FILE = RxExtensions/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.tarunon.RxExtensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -331,6 +316,7 @@
 				EB586AB51D41CBC700F5182B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
