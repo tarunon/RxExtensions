@@ -52,18 +52,21 @@ class Throttle3Sink<O: ObserverType>
             let currentId = _id
             let d = SingleAssignmentDisposable()
             self.cancellable.disposable = d
-            let dueTime: RxTimeInterval
-            if let timestamp = _timestamp {
-                dueTime = _parent._dueTime - timestamp.timeIntervalSinceDate(_parent._scheduler.now)
-            } else {
-                dueTime = 0.0
-            }
-            _timestamp = _parent._scheduler.now
             _value = element
-            d.disposable = CompositeDisposable(
-                _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime, action: self.propagate),
-                _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime + _parent._dueTime, action: self.resetTimestamp)
-            )
+            if let timestamp = _timestamp {
+                let dueTime = _parent._dueTime - timestamp.timeIntervalSinceDate(_parent._scheduler.now)
+                _timestamp = _parent._scheduler.now
+                d.disposable = CompositeDisposable(
+                    _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime, action: self.propagate),
+                    _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime + _parent._dueTime, action: self.resetTimestamp)
+                )
+            } else {
+                _timestamp = _parent._scheduler.now
+                d.disposable = CompositeDisposable(
+                    _parent._scheduler.scheduleRelative((), dueTime: 0.0, action: self.propagate),
+                    _parent._scheduler.scheduleRelative(currentId, dueTime: _parent._dueTime, action: self.resetTimestamp)
+                )
+            }
         case .Error:
             _value = nil
             forwardOn(event)
@@ -76,6 +79,16 @@ class Throttle3Sink<O: ObserverType>
             forwardOn(.Completed)
             dispose()
         }
+    }
+
+    func propagate() -> Disposable {
+        _lock.lock(); defer { _lock.unlock() } // {
+        if let value = _value {
+            _value = nil
+            forwardOn(.Next(value))
+        }
+        // }
+        return NopDisposable.instance
     }
 
     func propagate(currentId: UInt64) -> Disposable {
