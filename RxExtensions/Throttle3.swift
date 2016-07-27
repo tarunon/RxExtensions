@@ -17,6 +17,7 @@ class Throttle3Sink<O: ObserverType>
 , SynchronizedOnType {
     typealias Element = O.E
     typealias ParentType = Throttle3<Element>
+    typealias DisposeKey = Bag<Disposable>.KeyType
 
     private let _parent: ParentType
 
@@ -27,7 +28,7 @@ class Throttle3Sink<O: ObserverType>
     private var _value: Element? = nil
     private var _timestamp: RxTime? = nil
 
-    let cancellable = SerialDisposable()
+    let cancellable = CompositeDisposable()
 
     init(parent: ParentType, observer: O) {
         _parent = parent
@@ -51,21 +52,22 @@ class Throttle3Sink<O: ObserverType>
             _id = _id &+ 1
             let currentId = _id
             let d = SingleAssignmentDisposable()
-            self.cancellable.disposable = d
-            _value = element
-            if let timestamp = _timestamp {
-                let dueTime = _parent._dueTime - timestamp.timeIntervalSinceDate(_parent._scheduler.now)
-                _timestamp = _parent._scheduler.now
-                d.disposable = CompositeDisposable(
-                    _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime, action: self.propagate),
-                    _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime + _parent._dueTime, action: self.resetTimestamp)
-                )
-            } else {
-                _timestamp = _parent._scheduler.now
-                d.disposable = CompositeDisposable(
-                    _parent._scheduler.scheduleRelative((), dueTime: 0.0, action: self.propagate),
-                    _parent._scheduler.scheduleRelative(currentId, dueTime: _parent._dueTime, action: self.resetTimestamp)
-                )
+            if let key = self.cancellable.addDisposable(d) {
+                _value = element
+                if let timestamp = _timestamp {
+                    let dueTime = _parent._dueTime - timestamp.timeIntervalSinceDate(_parent._scheduler.now)
+                    _timestamp = _parent._scheduler.now
+                    d.disposable = CompositeDisposable(
+                        _parent._scheduler.scheduleRelative((currentId), dueTime: dueTime, action: self.propagate),
+                        _parent._scheduler.scheduleRelative((currentId, key), dueTime: dueTime + _parent._dueTime, action: self.resetTimestamp)
+                    )
+                } else {
+                    _timestamp = _parent._scheduler.now
+                    d.disposable = CompositeDisposable(
+                        _parent._scheduler.scheduleRelative((), dueTime: 0.0, action: self.propagate),
+                        _parent._scheduler.scheduleRelative((currentId, key), dueTime: _parent._dueTime, action: self.resetTimestamp)
+                    )
+                }
             }
         case .Error:
             _value = nil
@@ -101,8 +103,9 @@ class Throttle3Sink<O: ObserverType>
         return NopDisposable.instance
     }
 
-    func resetTimestamp(currentId: UInt64) -> Disposable {
+    func resetTimestamp(currentId: UInt64, key: DisposeKey) -> Disposable {
         _lock.lock(); defer { _lock.unlock() } // {
+        cancellable.removeDisposable(key)
         if  currentId == _id {
             _timestamp = nil
         }
