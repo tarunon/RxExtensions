@@ -90,7 +90,7 @@ class Throttle2Sink<O: ObserverType>
             } else {
                 _timestamp = _parent._scheduler.now
                 d.disposable = CompositeDisposable(
-                    _parent._scheduler.scheduleRelative(currentId, dueTime: 0.0, action: self.propagate),
+                    _parent._scheduler.scheduleRelative((), dueTime: 0.0, action: self.propagate),
                     _parent._scheduler.scheduleRelative(currentId, dueTime: _parent._dueTime, action: self.resetTimestamp)
                 )
             }
@@ -108,9 +108,9 @@ class Throttle2Sink<O: ObserverType>
         }
     }
 
-    func propagate(currentId: UInt64) -> Disposable {
+    func propagate() -> Disposable {
         _lock.lock(); defer { _lock.unlock() } // {
-        if let value = _value where currentId == _id {
+        if let value = _value {
             _value = nil
             forwardOn(.Next(value))
         }
