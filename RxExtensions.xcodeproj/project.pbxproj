@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EB05D8561D4889C9004BD357 /* Throttle3.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB05D8551D4889C9004BD357 /* Throttle3.swift */; };
 		EB586AAF1D41CBC700F5182B /* RxExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = EB586AAE1D41CBC700F5182B /* RxExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		EB586AB71D41D6E000F5182B /* RxSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB586AB61D41D6E000F5182B /* RxSwift.framework */; };
 		EB586ABB1D41D70400F5182B /* RxCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB586ABA1D41D70400F5182B /* RxCocoa.framework */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		EB05D8551D4889C9004BD357 /* Throttle3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Throttle3.swift; sourceTree = "<group>"; };
 		EB586AAB1D41CBC700F5182B /* RxExtensions.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RxExtensions.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB586AAE1D41CBC700F5182B /* RxExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RxExtensions.h; sourceTree = "<group>"; };
 		EB586AB01D41CBC700F5182B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 				EB586AC11D41D85200F5182B /* Producer.swift */,
 				EB586ABF1D41D81B00F5182B /* Delay.swift */,
 				EB586AC31D41DAD200F5182B /* Throttle2.swift */,
+				EB05D8551D4889C9004BD357 /* Throttle3.swift */,
 				EB586AB01D41CBC700F5182B /* Info.plist */,
 			);
 			path = RxExtensions;
@@ -151,6 +154,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB05D8561D4889C9004BD357 /* Throttle3.swift in Sources */,
 				EB586AC21D41D85200F5182B /* Producer.swift in Sources */,
 				EB586ABE1D41D78C00F5182B /* Sink.swift in Sources */,
 				EB586AC41D41DAD200F5182B /* Throttle2.swift in Sources */,
