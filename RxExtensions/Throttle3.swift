@@ -121,8 +121,8 @@ extension ObservableType {
     /**
      throttle3 is like of throttle2, and send last event after wait dueTime.
      */
-    public func throttle2(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Self.E> {
-        return Throttle2(source: self.asObservable(), dueTime: dueTime, scheduler: scheduler).asObservable()
+    public func throttle3(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Self.E> {
+        return Throttle3(source: self.asObservable(), dueTime: dueTime, scheduler: scheduler).asObservable()
     }
 }
 
@@ -130,8 +130,8 @@ extension Driver {
     /**
      throttle3 is like of throttle2, and send last event after wait dueTime.
      */
-    public func throttle2(dueTime: RxTimeInterval) -> Driver<Element> {
-        return Throttle2(source: self.asObservable(), dueTime: dueTime, scheduler: MainScheduler.instance).asDriver(onErrorDriveWith: Driver.empty())
+    public func throttle3(dueTime: RxTimeInterval) -> Driver<Element> {
+        return Throttle3(source: self.asObservable(), dueTime: dueTime, scheduler: MainScheduler.instance).asDriver(onErrorDriveWith: Driver.empty())
     }
 }
 
