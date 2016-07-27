@@ -10,43 +10,13 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-protocol Lock {
-    func lock()
-    func unlock()
-}
-
-protocol LockOwnerType : class, Lock {
-    var _lock: NSRecursiveLock { get }
-}
-
-extension LockOwnerType {
-    func lock() {
-        _lock.lock()
-    }
-
-    func unlock() {
-        _lock.unlock()
-    }
-}
-
-protocol SynchronizedOnType : class, ObserverType, Lock {
-    func _synchronized_on(event: Event<E>)
-}
-
-extension SynchronizedOnType {
-    func synchronizedOn(event: Event<E>) {
-        lock(); defer { unlock() }
-        _synchronized_on(event)
-    }
-}
-
-class Throttle2Sink<O: ObserverType>
+class Throttle3Sink<O: ObserverType>
     : Sink<O>
     , ObserverType
     , LockOwnerType
 , SynchronizedOnType {
     typealias Element = O.E
-    typealias ParentType = Throttle2<Element>
+    typealias ParentType = Throttle3<Element>
 
     private let _parent: ParentType
 
@@ -82,18 +52,18 @@ class Throttle2Sink<O: ObserverType>
             let currentId = _id
             let d = SingleAssignmentDisposable()
             self.cancellable.disposable = d
-            _value = element
+            let dueTime: RxTimeInterval
             if let timestamp = _timestamp {
-                let dueTime = _parent._dueTime - timestamp.timeIntervalSinceDate(_parent._scheduler.now)
-                _timestamp = _parent._scheduler.now
-                d.disposable = _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime + _parent._dueTime, action: self.resetTimestamp)
+                dueTime = _parent._dueTime - timestamp.timeIntervalSinceDate(_parent._scheduler.now)
             } else {
-                _timestamp = _parent._scheduler.now
-                d.disposable = CompositeDisposable(
-                    _parent._scheduler.scheduleRelative(currentId, dueTime: 0.0, action: self.propagate),
-                    _parent._scheduler.scheduleRelative(currentId, dueTime: _parent._dueTime, action: self.resetTimestamp)
-                )
+                dueTime = 0.0
             }
+            _timestamp = _parent._scheduler.now
+            _value = element
+            d.disposable = CompositeDisposable(
+                _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime, action: self.propagate),
+                _parent._scheduler.scheduleRelative(currentId, dueTime: dueTime + _parent._dueTime, action: self.resetTimestamp)
+            )
         case .Error:
             _value = nil
             forwardOn(event)
@@ -128,7 +98,7 @@ class Throttle2Sink<O: ObserverType>
     }
 }
 
-class Throttle2<Element> : Producer<Element> {
+class Throttle3<Element> : Producer<Element> {
 
     private let _source: Observable<Element>
     private let _dueTime: RxTimeInterval
@@ -141,7 +111,7 @@ class Throttle2<Element> : Producer<Element> {
     }
 
     override func run<O: ObserverType where O.E == Element>(observer: O) -> Disposable {
-        let sink = Throttle2Sink(parent: self, observer: observer)
+        let sink = Throttle3Sink(parent: self, observer: observer)
         sink.disposable = sink.run()
         return sink
     }
@@ -149,8 +119,8 @@ class Throttle2<Element> : Producer<Element> {
 
 extension Observable {
     /**
-     throttle2 is like of throttle, throttle2 send first event in dueTime.
-    */
+     throttle3 is like of throttle2, and send last event after wait dueTime.
+     */
     public func throttle2(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Element> {
         return Throttle2(source: self, dueTime: dueTime, scheduler: scheduler).asObservable()
     }
@@ -158,7 +128,7 @@ extension Observable {
 
 extension Driver {
     /**
-     throttle2 is like of throttle, throttle2 send first event in dueTime.
+     throttle3 is like of throttle2, and send last event after wait dueTime.
      */
     public func throttle2(dueTime: RxTimeInterval) -> Driver<Element> {
         return Throttle2(source: self.asObservable(), dueTime: dueTime, scheduler: MainScheduler.instance).asDriver(onErrorDriveWith: Driver.empty())
