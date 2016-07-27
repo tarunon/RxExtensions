@@ -117,12 +117,12 @@ class Throttle3<Element> : Producer<Element> {
     }
 }
 
-extension Observable {
+extension ObservableType {
     /**
      throttle3 is like of throttle2, and send last event after wait dueTime.
      */
-    public func throttle2(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Element> {
-        return Throttle2(source: self, dueTime: dueTime, scheduler: scheduler).asObservable()
+    public func throttle2(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Self.E> {
+        return Throttle2(source: self.asObservable(), dueTime: dueTime, scheduler: scheduler).asObservable()
     }
 }
 
