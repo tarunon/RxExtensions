@@ -103,12 +103,12 @@ class Delay<Element>: Producer<Element> {
     }
 }
 
-extension Observable {
+extension ObservableType {
     /**
      [delay operator on reactivex.io](http://reactivex.io/documentation/operators/delay.html)
     */
-    public func delay(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Element> {
-        return Delay(source: self, dueTime: dueTime, scheduler: scheduler).asObservable()
+    public func delay(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Self.E> {
+        return Delay(source: self.asObservable(), dueTime: dueTime, scheduler: scheduler).asObservable()
     }
 }
 
