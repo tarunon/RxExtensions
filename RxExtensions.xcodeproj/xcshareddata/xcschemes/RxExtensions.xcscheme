@@ -28,7 +28,26 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "EB1B1E4A1D49AFF800D3639A"
+               BuildableName = "RxExtensionsTests.xctest"
+               BlueprintName = "RxExtensionsTests"
+               ReferencedContainer = "container:RxExtensions.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "EB586AAA1D41CBC700F5182B"
+            BuildableName = "RxExtensions.framework"
+            BlueprintName = "RxExtensions"
+            ReferencedContainer = "container:RxExtensions.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
