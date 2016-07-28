@@ -26,7 +26,7 @@ class Throttle3Sink<O: ObserverType>
     // state
     private var _id = 0 as UInt64
     private var _value: Element? = nil
-    private var _timestamp: RxTime? = nil
+    private var _dropping: Bool = false
 
     let cancellable = CompositeDisposable()
 
@@ -54,18 +54,16 @@ class Throttle3Sink<O: ObserverType>
             let d = SingleAssignmentDisposable()
             if let key = self.cancellable.addDisposable(d) {
                 _value = element
-                if let timestamp = _timestamp {
-                    let dueTime = _parent._dueTime - timestamp.timeIntervalSinceDate(_parent._scheduler.now)
-                    _timestamp = _parent._scheduler.now
+                if _dropping {
                     d.disposable = CompositeDisposable(
-                        _parent._scheduler.scheduleRelative((currentId), dueTime: dueTime, action: self.propagate),
-                        _parent._scheduler.scheduleRelative((currentId, key), dueTime: dueTime + _parent._dueTime, action: self.resetTimestamp)
+                        _parent._scheduler.scheduleRelative((currentId), dueTime: _parent._dueTime, action: self.propagate),
+                        _parent._scheduler.scheduleRelative((currentId, key), dueTime: _parent._dueTime, action: self.endDrop)
                     )
                 } else {
-                    _timestamp = _parent._scheduler.now
+                    _dropping = true
                     d.disposable = CompositeDisposable(
                         _parent._scheduler.scheduleRelative((), dueTime: 0.0, action: self.propagate),
-                        _parent._scheduler.scheduleRelative((currentId, key), dueTime: _parent._dueTime, action: self.resetTimestamp)
+                        _parent._scheduler.scheduleRelative((currentId, key), dueTime: _parent._dueTime, action: self.endDrop)
                     )
                 }
             }
@@ -103,11 +101,11 @@ class Throttle3Sink<O: ObserverType>
         return NopDisposable.instance
     }
 
-    func resetTimestamp(currentId: UInt64, key: DisposeKey) -> Disposable {
+    func endDrop(currentId: UInt64, key: DisposeKey) -> Disposable {
         _lock.lock(); defer { _lock.unlock() } // {
         cancellable.removeDisposable(key)
         if  currentId == _id {
-            _timestamp = nil
+            _dropping = false
         }
         // }
         return NopDisposable.instance
