@@ -1,0 +1,10 @@
+matrix:
+  include:
+    - os: osx
+      language: objective-c
+      osx_image: xcode7.3
+  before_install:
+    - carthage bootstrap --verbose --platform iOS
+script:
+  - set -o pipefail
+  - xcodebuild test -scheme RxExtensions -configuration Debug | xcpretty -c
