@@ -8,7 +8,7 @@
 
 import XCTest
 import RxSwift
-import RxTests
+import RxTest
 import RxBlocking
 import RxExtensions
 
@@ -32,7 +32,7 @@ extension RxExtensionsTest {
             completed(400)
             ])
 
-        let res = scheduler.start {
+        let res = scheduler.start { () -> Observable<Int> in
             xs.throttle2(20, scheduler: scheduler)
         }
 
@@ -258,18 +258,18 @@ extension RxExtensionsTest {
     }
 
     func test_Throttle2WithRealScheduler() {
-        let scheduler = ConcurrentDispatchQueueScheduler(globalConcurrentQueueQOS: .Default)
+        let scheduler = ConcurrentDispatchQueueScheduler(qos: .default)
 
-        let start = NSDate()
+        let start = Date()
 
-        let a = try! [Observable.just(0), Observable.never()].toObservable().concat()
+        let a = try! Observable.from([Observable.just(0), Observable.never()]).concat()
             .throttle2(2.0, scheduler: scheduler)
             .toBlocking()
             .first()
 
         let end = NSDate()
 
-        XCTAssertEqualWithAccuracy(0, end.timeIntervalSinceDate(start), accuracy: 0.5)
+        XCTAssertEqualWithAccuracy(0, end.timeIntervalSince(start), accuracy: 0.5)
         XCTAssertEqual(a, 0)
     }
 }
@@ -518,18 +518,18 @@ extension RxExtensionsTest {
     }
 
     func test_Throttle3WithRealScheduler() {
-        let scheduler = ConcurrentDispatchQueueScheduler(globalConcurrentQueueQOS: .Default)
+        let scheduler = ConcurrentDispatchQueueScheduler(qos: .default)
         
-        let start = NSDate()
+        let start = Date()
         
-        let a = try! [Observable.just(0), Observable.never()].toObservable().concat()
+        let a = try! Observable.from([Observable.just(0), Observable.never()]).concat()
             .throttle3(2.0, scheduler: scheduler)
             .toBlocking()
             .first()
         
         let end = NSDate()
         
-        XCTAssertEqualWithAccuracy(0, end.timeIntervalSinceDate(start), accuracy: 0.5)
+        XCTAssertEqualWithAccuracy(0, end.timeIntervalSince(start), accuracy: 0.5)
         XCTAssertEqual(a, 0)
     }
 }
@@ -672,8 +672,8 @@ extension RxExtensionsTest {
     }
 
     func testDelay_TimeSpan_Real_Simple() {
-        let expectation = self.expectationWithDescription("")
-        let scheduler = ConcurrentDispatchQueueScheduler(globalConcurrentQueueQOS: .Default)
+        let expectation = self.expectation(description: "")
+        let scheduler = ConcurrentDispatchQueueScheduler(qos: .default)
 
         let s = PublishSubject<Int>()
 
@@ -689,14 +689,14 @@ extension RxExtensionsTest {
                 expectation.fulfill()
         })
 
-        dispatch_async(dispatch_get_global_queue(0, 0)) {
+        DispatchQueue.global().async {
             s.onNext(1)
             s.onNext(2)
             s.onNext(3)
             s.onCompleted()
         }
 
-        waitForExpectationsWithTimeout(1.0, handler: nil)
+        waitForExpectations(timeout: 1.0, handler: nil)
 
         subscription.dispose()
 
@@ -704,8 +704,8 @@ extension RxExtensionsTest {
     }
 
     func testDelay_TimeSpan_Real_Error1() {
-        let expectation = self.expectationWithDescription("")
-        let scheduler = ConcurrentDispatchQueueScheduler(globalConcurrentQueueQOS: .Default)
+        let expectation = self.expectation(description: "")
+        let scheduler = ConcurrentDispatchQueueScheduler(qos: .default)
 
         let s = PublishSubject<Int>()
 
@@ -721,14 +721,14 @@ extension RxExtensionsTest {
                 expectation.fulfill()
         })
 
-        dispatch_async(dispatch_get_global_queue(0, 0)) {
+        DispatchQueue.global().async {
             s.onNext(1)
             s.onNext(2)
             s.onNext(3)
             s.onError(testError)
         }
 
-        waitForExpectationsWithTimeout(1.0, handler: nil)
+        waitForExpectations(timeout: 1.0, handler: nil)
 
         subscription.dispose()
 
@@ -736,8 +736,8 @@ extension RxExtensionsTest {
     }
 
     func testDelay_TimeSpan_Real_Error2() {
-        let expectation = self.expectationWithDescription("")
-        let scheduler = ConcurrentDispatchQueueScheduler(globalConcurrentQueueQOS: .Default)
+        let expectation = self.expectation(description: "")
+        let scheduler = ConcurrentDispatchQueueScheduler(qos: .default)
 
         let s = PublishSubject<Int>()
 
@@ -755,13 +755,13 @@ extension RxExtensionsTest {
                 expectation.fulfill()
         })
 
-        dispatch_async(dispatch_get_global_queue(0, 0)) {
+        DispatchQueue.global().async {
             s.onNext(1)
-            NSThread.sleepForTimeInterval(0.5)
+            Thread.sleep(forTimeInterval: 0.5)
             s.onError(testError)
         }
 
-        waitForExpectationsWithTimeout(1.0, handler: nil)
+        waitForExpectations(timeout: 1.0, handler: nil)
 
         subscription.dispose()
 
@@ -770,8 +770,8 @@ extension RxExtensionsTest {
     }
 
     func testDelay_TimeSpan_Real_Error3() {
-        let expectation = self.expectationWithDescription("")
-        let scheduler = ConcurrentDispatchQueueScheduler(globalConcurrentQueueQOS: .Default)
+        let expectation = self.expectation(description: "")
+        let scheduler = ConcurrentDispatchQueueScheduler(qos: .default)
 
         let s = PublishSubject<Int>()
 
@@ -783,20 +783,20 @@ extension RxExtensionsTest {
         let subscription = res.subscribe(
             onNext: { i in
                 array.append(i)
-                NSThread.sleepForTimeInterval(0.5)
+                Thread.sleep(forTimeInterval: 0.5)
             },
             onError: { ex in
                 err = ex as NSError
                 expectation.fulfill()
         })
 
-        dispatch_async(dispatch_get_global_queue(0, 0)) {
+        DispatchQueue.global().async {
             s.onNext(1)
-            NSThread.sleepForTimeInterval(0.5)
+            Thread.sleep(forTimeInterval: 0.5)
             s.onError(testError)
         }
 
-        waitForExpectationsWithTimeout(1.0, handler: nil)
+        waitForExpectations(timeout: 1.0, handler: nil)
 
         subscription.dispose()
 

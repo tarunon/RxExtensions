@@ -9,15 +9,16 @@
 import Foundation
 import RxSwift
 
-class Sink<O : ObserverType> : SingleAssignmentDisposable {
-    private let _observer: O
+class Sink<O : ObserverType> : Disposable {
+    fileprivate let disposable = SingleAssignmentDisposable()
+    fileprivate let _observer: O
 
     init(observer: O) {
         _observer = observer
     }
 
-    final func forwardOn(event: Event<O.E>) {
-        if disposed {
+    final func forwardOn(_ event: Event<O.E>) {
+        if disposable.isDisposed {
             return
         }
         _observer.on(event)
@@ -25,6 +26,14 @@ class Sink<O : ObserverType> : SingleAssignmentDisposable {
 
     final func forwarder() -> SinkForward<O> {
         return SinkForward(forward: self)
+    }
+
+    func dispose() {
+        disposable.dispose()
+    }
+
+    func setDisposable(_ disposable: Disposable) {
+        self.disposable.setDisposable(disposable)
     }
 }
 
@@ -37,11 +46,11 @@ class SinkForward<O: ObserverType>: ObserverType {
         _forward = forward
     }
 
-    func on(event: Event<E>) {
+    func on(_ event: Event<E>) {
         switch event {
-        case .Next:
+        case .next:
             _forward._observer.on(event)
-        case .Error, .Completed:
+        case .error, .completed:
             _forward._observer.on(event)
             _forward.dispose()
         }

@@ -8,11 +8,11 @@
 
 import RxSwift
 
-@noreturn func rxFatalError(lastMessage: String) {
+func rxFatalError(_ lastMessage: String) -> Never {
     fatalError(lastMessage)
 }
 
-@noreturn func abstractMethod() -> Void {
+func abstractMethod() -> Never {
     rxFatalError("Abstract method")
 }
 
@@ -23,7 +23,7 @@ class Producer<Element> : ObservableType {
 
     }
 
-    func subscribe<O : ObserverType where O.E == Element>(observer: O) -> Disposable {
+    func subscribe<O : ObserverType>(_ observer: O) -> Disposable where O.E == E {
         if !CurrentThreadScheduler.isScheduleRequired {
             return run(observer)
         }
@@ -34,7 +34,7 @@ class Producer<Element> : ObservableType {
         }
     }
 
-    func run<O : ObserverType where O.E == Element>(observer: O) -> Disposable {
+    func run<O : ObserverType>(_ observer: O) -> Disposable where O.E == Element {
         abstractMethod()
     }
 }

@@ -30,11 +30,11 @@ extension LockOwnerType {
 }
 
 protocol SynchronizedOnType : class, ObserverType, Lock {
-    func _synchronized_on(event: Event<E>)
+    func _synchronized_on(_ event: Event<E>)
 }
 
 extension SynchronizedOnType {
-    func synchronizedOn(event: Event<E>) {
+    func synchronizedOn(_ event: Event<E>) {
         lock(); defer { unlock() }
         _synchronized_on(event)
     }
@@ -45,9 +45,10 @@ class Throttle2Sink<O: ObserverType>
     , ObserverType
     , LockOwnerType
 , SynchronizedOnType {
+    typealias E = O.E
     typealias Element = O.E
     typealias ParentType = Throttle2<Element>
-    typealias DisposeKey = Bag<Disposable>.KeyType
+    typealias DisposeKey = CompositeDisposable.DisposeKey
 
     private let _parent: ParentType
 
@@ -69,37 +70,37 @@ class Throttle2Sink<O: ObserverType>
     func run() -> Disposable {
         let subscription = _parent._source.subscribe(self)
 
-        return StableCompositeDisposable.create(subscription, cancellable)
+        return Disposables.create(subscription, cancellable)
     }
 
-    func on(event: Event<Element>) {
+    func on(_ event: Event<Element>) {
         synchronizedOn(event)
     }
 
-    func _synchronized_on(event: Event<Element>) {
+    func _synchronized_on(_ event: Event<Element>) {
         switch event {
-        case .Next(let element):
+        case .next(let element):
             _id = _id &+ 1
             let currentId = _id
             let d = SingleAssignmentDisposable()
-            if let key = self.cancellable.addDisposable(d) {
+            if let key = self.cancellable.insert(d) {
                 _value = element
                 if _dropping {
-                    d.disposable = _parent._scheduler.scheduleRelative((currentId, key), dueTime: _parent._dueTime, action: self.endDrop)
+                    d.setDisposable(_parent._scheduler.scheduleRelative((currentId, key), dueTime: _parent._dueTime, action: self.endDrop))
                 } else {
                     _dropping = true
-                    d.disposable = CompositeDisposable(
+                    d.setDisposable(Disposables.create(
                         _parent._scheduler.scheduleRelative((), dueTime: 0.0, action: self.propagate),
                         _parent._scheduler.scheduleRelative((currentId, key), dueTime: _parent._dueTime, action: self.endDrop)
-                    )
+                    ))
                 }
             }
-        case .Error:
+        case .error:
             _value = nil
             forwardOn(event)
             dispose()
-        case .Completed:
-            forwardOn(.Completed)
+        case .completed:
+            forwardOn(.completed)
             dispose()
         }
     }
@@ -108,28 +109,28 @@ class Throttle2Sink<O: ObserverType>
         _lock.lock(); defer { _lock.unlock() } // {
         if let value = _value {
             _value = nil
-            forwardOn(.Next(value))
+            forwardOn(.next(value))
         }
         // }
-        return NopDisposable.instance
+        return Disposables.create()
     }
 
     func endDrop(currentId: UInt64, key: DisposeKey) -> Disposable {
         _lock.lock(); defer { _lock.unlock() } // {
-        cancellable.removeDisposable(key)
+        cancellable.remove(for: key)
         if  currentId == _id {
             _dropping = false
         }
         // }
-        return NopDisposable.instance
+        return Disposables.create()
     }
 }
 
 class Throttle2<Element> : Producer<Element> {
 
-    private let _source: Observable<Element>
-    private let _dueTime: RxTimeInterval
-    private let _scheduler: SchedulerType
+    fileprivate let _source: Observable<Element>
+    fileprivate let _dueTime: RxTimeInterval
+    fileprivate let _scheduler: SchedulerType
 
     init(source: Observable<Element>, dueTime: RxTimeInterval, scheduler: SchedulerType) {
         _source = source
@@ -137,9 +138,9 @@ class Throttle2<Element> : Producer<Element> {
         _scheduler = scheduler
     }
 
-    override func run<O: ObserverType where O.E == Element>(observer: O) -> Disposable {
+    override func run<O: ObserverType>(_ observer: O) -> Disposable where O.E == Element {
         let sink = Throttle2Sink(parent: self, observer: observer)
-        sink.disposable = sink.run()
+        sink.setDisposable(sink.run())
         return sink
     }
 }
@@ -148,17 +149,17 @@ extension ObservableType {
     /**
      throttle2 is like of throttle, throttle2 send first event in dueTime.
     */
-    public func throttle2(dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Self.E> {
+    public func throttle2(_ dueTime: RxTimeInterval, scheduler: SchedulerType) -> Observable<Self.E> {
         return Throttle2(source: self.asObservable(), dueTime: dueTime, scheduler: scheduler).asObservable()
     }
 }
 
-extension Driver {
+extension SharedSequence {
     /**
      throttle2 is like of throttle, throttle2 send first event in dueTime.
      */
-    public func throttle2(dueTime: RxTimeInterval) -> Driver<Element> {
-        return Throttle2(source: self.asObservable(), dueTime: dueTime, scheduler: MainScheduler.instance).asDriver(onErrorDriveWith: Driver.empty())
+    public func throttle2(_ dueTime: RxTimeInterval) -> SharedSequence {
+        return Throttle2(source: self.asObservable(), dueTime: dueTime, scheduler: MainScheduler.instance).asSharedSequence(onErrorDriveWith: SharedSequence.empty())
     }
 }
 
